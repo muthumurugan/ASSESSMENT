@@ -123,6 +123,7 @@ for data in excel_data:
             # This block executes if the loop completes without breaking
             print("Task is still pending after waiting for 5 minutes. Exiting loop.")
 
+    time.sleep(20)
     applicant_status = re_initiate_obj.latest_applicant_status(crpo_headers)
     print("Latest Applicant Status :", applicant_status)
     usecase = result['data']['UseCasePassed']

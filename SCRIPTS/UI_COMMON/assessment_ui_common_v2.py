@@ -40,7 +40,7 @@ class AssessmentUICommon:
             raise Exception(f"Unsupported OS: {self.os_name}")
         chrome_options = Options()
         chrome_options.add_argument("--use-fake-ui-for-media-stream")
-        chrome_options.add_argument("--headless")  # Enable headless mode
+        # chrome_options.add_argument("--headless")  # Enable headless mode
         # chrome_options.add_argument("--disable-gpu")  # Recommended to prevent GPU errors in headless mode
         # chrome_options.add_argument("--no-sandbox")  # Bypass OS security model, necessary for some systems
         # chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems

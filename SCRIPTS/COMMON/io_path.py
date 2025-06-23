@@ -192,6 +192,7 @@ output_path_rate_control = output_common_dir + r'/SECURITY/rate_control'
 
 output_path_ui_assessment_grid_actions = output_common_dir + r'/UI/UI_assessment_grid_actions'
 output_path_ui_authoring_grid_actions = output_common_dir + r'/UI/UI_authoring_grid_actions'
+output_path_ui_interview_bot_grid_actions = output_common_dir + r'/UI/UI_interview_bot_grid_actions'
 
 # INFRA
 output_path_infra_strict_domain = output_common_dir + r'/INFRA/API_infra_strict_domain'

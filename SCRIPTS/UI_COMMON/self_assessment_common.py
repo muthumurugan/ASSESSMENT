@@ -1240,7 +1240,7 @@ class SelfAssessmentLogin:
         }
         ''')
             time.sleep(1)
-            self.driver.find_element(By.XPATH,"//button[normalize-space()='Compile & Execute']").click()
+            self.driver.find_element(By.XPATH,"//button[normalize-space()='Run Tests']").click()
             time.sleep(5)
             self_assessment_obj.next_question()
             self_assessment_obj.send_answer_for_coding_question(''' 
