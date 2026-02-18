@@ -61,7 +61,7 @@ class VetChaining:
         # self.common_path = path
         # print(self.common_path)
 
-        self.browser = assess_ui_common_obj.initiate_browser(amsin_at_vet_url, chrome_driver_path)
+        self.browser = assess_ui_common_obj.initiate_browser(amsin_at_vet_url)
         login_details = assess_ui_common_obj.ui_login_to_test(current_excel_data.get('loginName'),
                                                               (current_excel_data.get('password')))
         # self.browser.get_screenshot_as_file(self.common_path + "\\1_t1_afterlogin.png")
