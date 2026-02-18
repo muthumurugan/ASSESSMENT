@@ -80,7 +80,7 @@ class SanitizeAutomation:
 
 
 re_initiate_obj = SanitizeAutomation()
-excel_read_obj.excel_read(input_path_sanitize_automation, 0)
+excel_read_obj.excel_read(input_path_sanitize_automation, 1)
 excel_data = excel_read_obj.details
 crpo_headers = crpo_common_obj.login_to_crpo(cred_crpo_admin.get('user'), cred_crpo_admin.get('password'),
                                              cred_crpo_admin.get('tenant'))

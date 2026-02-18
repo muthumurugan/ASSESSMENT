@@ -15,10 +15,13 @@ class FaceLiveliness:
         # 1 Row Header
         write_excel_object.write_headers_for_scripts(0, 0, header, write_excel_object.black_color_bold)
         header = ['Testcases', 'Status', 'Test ID', 'Candidate ID', 'Testuser ID', 'Expected Liveness proct status',
-                  'Actual Liveness proct status',
+                  'Actual Liveness proct status','Expected Liveness proct count',
+                  'Actual Liveness proct count',
                   'Expected overall proctoring status',
                   'Actual overall proctoring status', 'Expected overall rating', 'Actual overall rating',
-                  'Expected Video proctoring status', 'Actual Video Proctoring status']
+                  'Expected Video proctoring status', 'Actual Video Proctoring status','Expected proctoring reason',
+                  'Actual proctoring reason','Expected overall proctoring reason',
+                  'Actual overall proctoring reason']
         write_excel_object.write_headers_for_scripts(1, 0, header, write_excel_object.black_color_bold)
 
     def suspicious_or_not_supicious(self, data, overall_proctoring_status_value):
@@ -49,27 +52,46 @@ class FaceLiveliness:
         tu_proctor_details = crpo_common_obj.get_tu_proc_screen_data(token, tu_id)
         print(tu_proctor_details)
         proctor_detail = tu_proctor_details['data']['getProctorDetail']
+        overallReasons = proctor_detail.get('overallReasons')
+
         liveliness = proctor_detail.get('livenessDetectionDetails')
         if liveliness:
             liveliness_suspicious = (liveliness.get('livenessDetectionSuspicious'))
+            liveliness_count = (liveliness.get('livenessDetectionCount'))
+
         else:
             liveliness_suspicious = 'EMPTY'
+            liveliness_count = 'EMPTY'
+
+        if overallReasons:
+            overall_reason_text = (overallReasons.get('reasonText'))
+            reason_text = (proctor_detail.get('reasonText'))
+        else:
+            overall_reason_text = 'EMPTY'
+            reason_text = 'EMPTY'
+
 
 
         # self.suspicious_or_not_supicious(device_suspicious, False)
         write_excel_object.compare_results_and_write_vertically(
             current_excel_data.get('expectedLiveProctoringStatus'),liveliness_suspicious, row_count, 5)
+        write_excel_object.compare_results_and_write_vertically(
+            current_excel_data.get('expectedLiveProctoringCount'),liveliness_count, row_count, 7)
         video_suspicious = proctor_detail.get('faceSuspicious')
         overall_proctoring_status = proctor_detail.get('finalDecision')
         overall_suspicious_value = proctor_detail.get('systemOverallDecision')
         self.suspicious_or_not_supicious(overall_proctoring_status, overall_suspicious_value)
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('overallProctoringStatus'),
-                                                                self.status, row_count, 7)
+                                                                self.status, row_count, 9)
         excel_overall_suspicious_value = round(current_excel_data.get('overallSuspiciousValue'), 4)
         write_excel_object.compare_results_and_write_vertically(excel_overall_suspicious_value,
-                                                                overall_suspicious_value, row_count, 9)
+                                                                overall_suspicious_value, row_count, 11)
         write_excel_object.compare_results_and_write_vertically(video_suspicious,current_excel_data.get('expectedVideoStatus'),
-                                                                 row_count, 11)
+                                                                 row_count, 13)
+        write_excel_object.compare_results_and_write_vertically(reason_text,current_excel_data.get('ProctoringReason'),
+                                                                 row_count, 15)
+        write_excel_object.compare_results_and_write_vertically(overall_reason_text,current_excel_data.get('overallProctoringReason'),
+                                                                 row_count, 17)
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('testCase'), None, row_count, 0)
         write_excel_object.compare_results_and_write_vertically(write_excel_object.current_status, None, row_count, 1)
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('testId'), None, row_count, 2)
@@ -78,13 +100,14 @@ class FaceLiveliness:
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('testUserId'), None, row_count,
                                                                 4)
 
-login_token = crpo_common_obj.login_to_crpo(cred_crpo_admin_crpodemo.get('user'), cred_crpo_admin_crpodemo.get('password'),
-                                            cred_crpo_admin_crpodemo.get('tenant'))
-# content = json.dumps(automation_proctor_eval_app_pref)
-# app_pref_proc_eval_id = automation_tenant_proc_eval_id
-# app_pref_proc_eval_type = automation_tenant_proc_eval_type
-# update_app_preference = CrpoCommon.save_apppreferences(login_token, content, app_pref_proc_eval_id,
-#                                                        app_pref_proc_eval_type)
+login_token = crpo_common_obj.login_to_crpo(cred_crpo_admin.get('user'),
+                                            cred_crpo_admin.get('password'),
+                                            cred_crpo_admin.get('tenant'))
+content = json.dumps(automation_face_liveliness_proctor_eval_app_pref)
+app_pref_proc_eval_id = automation_tenant_proc_eval_id
+app_pref_proc_eval_type = automation_tenant_proc_eval_type
+update_app_preference = CrpoCommon.save_apppreferences(login_token, content, app_pref_proc_eval_id,
+                                                       app_pref_proc_eval_type)
 
 excel_read_obj.excel_read(input_path_proctor_evaluation, 4)
 excel_data = excel_read_obj.details
@@ -111,4 +134,4 @@ row_count = 2
 for data in excel_data:
     proctor_obj.proctor_detail(row_count, data, login_token)
     row_count = row_count + 1
-write_excel_object.write_overall_status(testcases_count=10)
+write_excel_object.write_overall_status(testcases_count=13)

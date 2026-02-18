@@ -72,3 +72,20 @@ automation_default_proctor_eval_app_pref = {"behavioural":{"isEnabled":True, "co
             "singleCamera":{"isEnabled":True,
                 "WhitelistedCamera":{"isEnabled":True, "weightage":0.222, "keywords":["Integrated", "HP", "FaceTime"]},
                 "SuspiciousCamera":{"isEnabled":True, "keywords":["Logi"], "weightage":0.888}}}}}
+
+automation_face_liveliness_proctor_eval_app_pref = {"overall":0.3, "video":{"gestureDetectionConf":{"isEnabled":True,
+    "confThresholdList":[ {"suspiciousPercentage":100, "count":1, "level":"Highly Suspicious", "weightage":0.771},
+        {"suspiciousPercentage":50, "count":1, "level":"Medium Suspicious", "weightage":0.571} ]},
+    "behaviouralVideo":{"isEnabled":True,
+        "multipleFace":{"confidenceThreshold":40, "count":2, "isEnabled":True, "weightage":0.19},
+        "multiplePerson":{"confidenceThreshold":40, "count":2, "isEnabled":True, "weightage":0.179}}, "isEnabled":True,
+    "livenessDetection":{"confidenceScore":60, "count":2, "isEnabled":True, "weightage":0.95}, "multipleIntervalCount":{
+        "intervalCount":[ {"count":1, "interval":90, "weightage":0.186},
+            {"count":2, "interval":30, "weightage":0.156} ], "isEnabled":True}, "multiple_count":11,
+    "multiple_timespan":20, "weightage":0.3, "zeroIntervalCount":{
+        "intervalCount":[ {"count":1, "interval":90, "weightage":0.185},
+            {"count":2, "interval":30, "weightage":0.155} ], "isEnabled":True}, "zero_count":3, "zero_timespan":40,
+    "blurVirtualBg":{"isEnabled":True, "blurBgConfig":{"isEnabled":True,
+        "confThresholdList":[ {"from":80, "to":100, "weightage":0.712, "count":1},
+            {"from":50, "to":79, "weightage":0.512, "count":1} ]}, "virtualBgConfig":{"isEnabled":True,
+        "confThresholdList":[ {"from":80, "to":100, "weightage":0.812, "count":1} ]}}}}

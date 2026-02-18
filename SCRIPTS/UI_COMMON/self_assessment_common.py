@@ -1,39 +1,39 @@
 import datetime
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
-import selenium.webdriver.support.expected_conditions as EC  # Import and assign to EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException, \
     StaleElementReferenceException, ElementClickInterceptedException
-
-from SCRIPTS.SECURITY.char_encoding import value
 from SCRIPTS.UI_COMMON.assessment_ui_common_v2 import *
 
 
 class SelfAssessmentLogin:
     def __init__(self):
         self.delay = 120
+        self.os_name = platform.system()
+        print(self.os_name)
 
-    def initiate_browser(self, url, path):
+    def initiate_browser(self, url):
         chrome_options = Options()
+
+        # Auto allow mic/camera (VET / WebRTC)
         chrome_options.add_argument("--use-fake-ui-for-media-stream")
-        # chrome_options.add_argument("--headless")  # Enable headless mode
-        chrome_options.add_argument("--disable-gpu")  # Recommended to prevent GPU errors in headless mode
-        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-        chrome_options.add_argument("--disable-features=VizDisplayCompositor")
-        chrome_options.add_argument("--disable-infobars")
+
+        # Stability & speed
         chrome_options.add_argument("--disable-notifications")
-        chrome_options.add_argument("--disable-images")
-        chrome_options.add_argument("--no-sandbox")
-        self.driver = webdriver.Chrome(executable_path=path, chrome_options=chrome_options)
+        chrome_options.add_argument("--disable-infobars")
+        chrome_options.add_experimental_option("detach", True)
+
+        # 🚀 Selenium Manager handles driver automatically
+        self.driver = webdriver.Chrome(options=chrome_options)
+
         self.driver.get(url)
-        # self.driver.implicitly_wait(10)
         self.driver.maximize_window()
-        self.driver.switch_to.window(self.driver.window_handles[0])
-        print("Browser initiated")
+
+        # REQUIRED for your login code
+        self.wait = WebDriverWait(self.driver, 10)
+
+        # Safe window handling
+        if len(self.driver.window_handles) > 1:
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+
         return self.driver
 
     def ui_login_to_tenant(self, user_name, password):
@@ -128,7 +128,7 @@ class SelfAssessmentLogin:
             )
             section = WebDriverWait(self.driver, 120).until(
                 EC.presence_of_element_located(
-                    (By.XPATH, "//strong[contains(text(), '"+section_name+"')]")
+                    (By.XPATH, "//strong[contains(text(), '" + section_name + "')]")
                 )
             )
             time.sleep(2)
@@ -149,6 +149,17 @@ class SelfAssessmentLogin:
         except Exception as e:
             print(f"Exception occurred: {e}")
             return 'FAILED'
+
+    def notes(self):
+        WebDriverWait(self.driver, 120).until(
+            EC.element_to_be_clickable(
+                (By.XPATH, "//label[@class='btn btn-default btn-sm']//i[@class='fa fa-fw fa-text-width']"))
+        ).click()
+
+        WebDriverWait(self.driver, 120).until(
+            EC.presence_of_element_located((By.XPATH, "//textarea[@ng-model='vm.data.questionInfo.notes']"))
+        ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+        print("notes added")
 
     def select_question_attributes(self):
         try:
@@ -256,9 +267,17 @@ class SelfAssessmentLogin:
             options = self.driver.find_elements(By.XPATH, "//*[@name='answer']")
             options[1].click()
 
-            WebDriverWait(self.driver, 120).until(
-                EC.presence_of_element_located((By.XPATH, "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
-            ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            # //label[@ng-class="{ 'btn-primary':vm.data.explanationAsText}"]
+            # WebDriverWait(self.driver, 120).until(
+            #     EC.element_to_be_clickable((By.XPATH, "//label[@ng-class='{ 'btn-primary':vm.data.explanationAsText}']"))
+            # ).click()
+            #
+            # WebDriverWait(self.driver, 120).until(
+            #     EC.presence_of_element_located((By.XPATH, "//textarea[@ng-model='vm.data.questionInfo.notes']"))
+            # ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+
+            self.notes()
+
             time.sleep(1)
             WebDriverWait(self.driver, 120).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@class = "btn btn-default btn-success btn-sm ng-scope"]'))
@@ -332,10 +351,11 @@ class SelfAssessmentLogin:
 
             option = self.driver.find_elements(By.XPATH, "//*[@name='answer']")
             option[1].click()
-            WebDriverWait(self.driver, 120).until(
-                EC.presence_of_element_located((By.XPATH,
-                                                "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
-            ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            # WebDriverWait(self.driver, 120).until(
+            #     EC.presence_of_element_located((By.XPATH,
+            #                                     "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
+            # ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            self.notes()
             time.sleep(1)
 
             element = WebDriverWait(self.driver, 120).until(
@@ -428,17 +448,15 @@ class SelfAssessmentLogin:
             self.driver.find_element(By.XPATH,
                                      "//input[@placeholder='File name to be saved with extensions. Eg: fileName.csv,fileName.txt']").send_keys(
                 'self_assessment.xls')
-            upload_element = self.driver.find_element(By.XPATH, "//label[text()='File Name:']/following::div//input[@type='file']")
+            upload_element = self.driver.find_element(By.XPATH,
+                                                      "//label[text()='File Name:']/following::div//input[@type='file']")
             file_path = 'D:/automation_new/ASSESSMENT/PythonWorkingScripts_InputData/UI/Assessment/self_assessment.xls'
             upload_element.send_keys(file_path)
 
             growl_message_locator = (By.XPATH, "//div[@class='growl-message ng-binding']")
             growl_message = wait.until(EC.visibility_of_element_located(growl_message_locator))
             print(growl_message.text)
-            WebDriverWait(self.driver, 120).until(
-                EC.presence_of_element_located((By.XPATH,
-                                                "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
-            ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            self.notes()
             time.sleep(1)
 
             element = WebDriverWait(self.driver, 120).until(
@@ -477,14 +495,21 @@ class SelfAssessmentLogin:
 
             # Select question attributes
             self_assessment_obj.select_question_attributes()
+            # //label[@ng-class="{'btn-primary':vm.data.questionAsText}"]//i[@class='fa fa-fw fa-text-width']
+
+            WebDriverWait(self.driver, 120).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//label[@class='btn btn-default btn-sm']//i[@class='fa fa-fw fa-text-width']"))
+            ).click()
 
             # Input question text
             editable_body = wait.until(
                 EC.presence_of_element_located((
                     By.XPATH,
-                    "//div[@ng-if='!vm.data.questionAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"
+                    "//textarea[@placeholder='Question Description']"
                 ))
             )
+            # //label[@class='btn btn-default btn-sm']//i[@class='fa fa-fw fa-text-width']
             editable_body.send_keys("po fib create q self-assessment automation don't use\n int(1234) ")
 
             # Create blank
@@ -527,13 +552,14 @@ class SelfAssessmentLogin:
             confirm_button.click()
 
             # Add explanation
-            explanation_field = wait.until(
-                EC.presence_of_element_located((
-                    By.XPATH,
-                    "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"
-                ))
-            )
-            explanation_field.send_keys("Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            # explanation_field = wait.until(
+            #     EC.presence_of_element_located((
+            #         By.XPATH,
+            #         "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"
+            #     ))
+            # )
+            # explanation_field.send_keys("Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            self.notes()
 
             # Scroll to the "Save" button and click
             save_button = wait.until(
@@ -586,10 +612,7 @@ class SelfAssessmentLogin:
             options = self.driver.find_elements(By.XPATH, "//input[@type='checkbox' and @title='select answer']")
             options[1].click()
             options[2].click()
-            WebDriverWait(self.driver, 120).until(
-                EC.presence_of_element_located((By.XPATH,
-                                                "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
-            ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            self.notes()
             time.sleep(1)
 
             WebDriverWait(self.driver, 120).until(
@@ -635,10 +658,7 @@ class SelfAssessmentLogin:
             options_value = self.driver.find_elements(By.XPATH, "//input[@type='number' and @max='100' and @min='0']")
             options_value[1].send_keys(100)
             options_value[2].send_keys(50)
-            WebDriverWait(self.driver, 120).until(
-                EC.presence_of_element_located((By.XPATH,
-                                                "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
-            ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            self.notes()
             time.sleep(1)
 
             WebDriverWait(self.driver, 120).until(
@@ -681,12 +701,18 @@ class SelfAssessmentLogin:
             self_assessment_obj.select_question_attributes()
             self.driver.find_element(By.XPATH, "//textarea[@placeholder='Problem Title']").send_keys(
                 "po coding create q sa automation don't use")
+
+            self.driver.find_element(By.XPATH, "//i[@class='fa fa-fw fa-text-width']").click()
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.XPATH,
-                     "//div[@ng-if='!vm.data.questionAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']")
-                )
+                EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Question Description']"))
             ).send_keys("po coding create q sa automation don't use \n c program to add 2 numbers")
+
+            # WebDriverWait(self.driver, 10).until(
+            #     EC.presence_of_element_located(
+            #         (By.XPATH,
+            #          "//div[@ng-if='!vm.data.questionAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']")
+            #     )
+            # ).send_keys("po coding create q sa automation don't use \n c program to add 2 numbers")
 
             # Select C language
             c_lang = WebDriverWait(self.driver, 10).until(
@@ -726,10 +752,7 @@ class SelfAssessmentLogin:
             )
 
             self.driver.find_element(By.CSS_SELECTOR, "input[title='Mark as sample']").click()
-            WebDriverWait(self.driver, 120).until(
-                EC.presence_of_element_located((By.XPATH,
-                                                "//div[@ng-if='!vm.data.explanationAsText']//div[@class='se-wrapper-inner se-wrapper-wysiwyg sun-editor-editable']"))
-            ).send_keys(" Notes sample Data c\n !@#$%^&*()_+-=094521;',.?/ ")
+            self.notes()
             time.sleep(1)
 
             WebDriverWait(self.driver, 120).until(
@@ -808,7 +831,7 @@ class SelfAssessmentLogin:
             print(f"Exception occurred while adding question local: {e}")
             return 'FAILED'
 
-    def add_rtc_local(self , section_name):
+    def add_rtc_local(self, section_name):
         try:
             print("Adding rtc question from my question library")
 
@@ -1084,7 +1107,8 @@ class SelfAssessmentLogin:
             # time.sleep(1)
 
             growl_message_locator = (By.XPATH, "//div[@class='growl-message ng-binding']")
-            growl_message = WebDriverWait(self.driver, 60).until(EC.visibility_of_element_located(growl_message_locator))
+            growl_message = WebDriverWait(self.driver, 60).until(
+                EC.visibility_of_element_located(growl_message_locator))
             print(growl_message.text)
             invite_status = 'SUCCESS'
             # if growl_message.text == 'Candidate invitation is in progress. Please check the invitation details below.':
@@ -1110,14 +1134,20 @@ class SelfAssessmentLogin:
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
 
-            self.driver.find_element(By.XPATH, "//label[contains(text(),'Shuffle Questions')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
-            self.driver.find_element(By.XPATH, "//label[contains(text(),'Instant Evaluation')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'On')]").click()
-            self.driver.find_element(By.XPATH, "//label[contains(text(),'Allow Copy/Paste in Answers')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'On')]").click()
-            self.driver.find_element(By.XPATH, "//label[contains(text(),'Restrict Navigation from Test')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
-            self.driver.find_element(By.XPATH, "//label[contains(text(),'Choose Proctoring Mode')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
+            self.driver.find_element(By.XPATH,
+                                     "//label[contains(text(),'Shuffle Questions')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
+            self.driver.find_element(By.XPATH,
+                                     "//label[contains(text(),'Instant Evaluation')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'On')]").click()
+            self.driver.find_element(By.XPATH,
+                                     "//label[contains(text(),'Allow Copy/Paste in Answers')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'On')]").click()
+            self.driver.find_element(By.XPATH,
+                                     "//label[contains(text(),'Restrict Navigation from Test')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
+            self.driver.find_element(By.XPATH,
+                                     "//label[contains(text(),'Choose Proctoring Mode')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
 
             update_test = wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'btn-primary') and contains(., 'Update')]")))
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//button[contains(@class, 'btn-primary') and contains(., 'Update')]")))
             self.driver.execute_script("arguments[0].click();", update_test)
 
             wait.until(
@@ -1129,12 +1159,18 @@ class SelfAssessmentLogin:
             print(growl_message.text)
             if growl_message.text == 'Test updated successfully.':
                 update_test_status = 'SUCCESS'
-            else :
+            else:
                 update_test_status = 'FAILED'
             time.sleep(2)
         except Exception as e:
             print(f"Error while updating test: {e}")
         return update_test_status
+
+    def safe_js_click(self, element):
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block:'center'});", element
+        )
+        self.driver.execute_script("arguments[0].click();", element)
 
     def attend_test(self, test_name):
         start_test_status = "Not Started"
@@ -1167,7 +1203,7 @@ class SelfAssessmentLogin:
                 # Answer the questions and end the test
                 self_assessment_obj.select_answer_generic()
                 self_assessment_obj.end_test()
-                end_test_status =self_assessment_obj.end_test_confirmation()
+                end_test_status = self_assessment_obj.end_test_confirmation()
 
                 time.sleep(5)
 
@@ -1227,34 +1263,34 @@ class SelfAssessmentLogin:
             self_assessment_obj.send_answer_for_coding_question(''' 
         #include <stdio.h>
         int main() {    
-        
+
         int number1, number2, sum;
-        
+
         scanf("%d %d", &number1, &number2);
-        
+
         // calculate the sum
         sum = number1 + number2;      
-        
+
         printf("%d + %d = %d", number1, number2, sum);
         return 0;
         }
         ''')
             time.sleep(1)
-            self.driver.find_element(By.XPATH,"//button[normalize-space()='Run Tests']").click()
+            self.driver.find_element(By.XPATH, "//button[normalize-space()='Run Tests']").click()
             time.sleep(5)
             self_assessment_obj.next_question()
             self_assessment_obj.send_answer_for_coding_question(''' 
         import java.util.Scanner;
-        
+
         public class TestClass {
-        
+
         public static void main(String[] args) {
-        
+
         Scanner reader = new Scanner(System.in);
-        
+
         System.out.print("Enter a number: ");
         int num = reader.nextInt();
-        
+
         if(num % 2 == 0)
         System.out.println(num + " is even");
         else
@@ -1269,20 +1305,20 @@ class SelfAssessmentLogin:
             self_assessment_obj.next_question()
             self_assessment_obj.send_answer_for_coding_question(''' 
              # Python program to check if the number is an Armstrong number or not
-        
+
         # take input from the user
         num = int(input(""))
-        
+
         # initialize sum
         sum = 0
-        
+
         # find the sum of the cube of each digit
         temp = num
         while temp > 0:
         digit = temp % 10
         sum += digit ** 3
         temp //= 10
-        
+
         # display the result
         if num == 8:
         print("Is the given number armstrong yes :  True")
@@ -1290,13 +1326,14 @@ class SelfAssessmentLogin:
         print("Is the given number armstrong yes :  True")
         else:
         print("Is the given number armstrong no :  False")
-        
+
              ''')
             time.sleep(1)
             self_assessment_obj.next_question()
 
             # subjective
-            self_assessment_obj.send_answer_for_qa_question("I am very foodie. I love to eat. Among the number of foods, Pizza is my favourite food because it tastes and smells fabulous. My Mom cooks the best Pizzas in the world. I always ask her to make Pizza. In Pizzas, I love onion cheese Pizza a lot. This is because cheese pizza is healthy and makes me strong. To create fun we also organize pizza races in terms of who can eat the maximum number of pizzas. I can eat many pizzas at a time.")
+            self_assessment_obj.send_answer_for_qa_question(
+                "I am very foodie. I love to eat. Among the number of foods, Pizza is my favourite food because it tastes and smells fabulous. My Mom cooks the best Pizzas in the world. I always ask her to make Pizza. In Pizzas, I love onion cheese Pizza a lot. This is because cheese pizza is healthy and makes me strong. To create fun we also organize pizza races in terms of who can eat the maximum number of pizzas. I can eat many pizzas at a time.")
             self_assessment_obj.next_question()
             self_assessment_obj.send_answer_for_qa_question(
                 "I am very foodie. I love to eat. Among the number of foods, Pizza is my favourite food because it tastes and smells fabulous. My Mom cooks the best Pizzas in the world. I always ask her to make Pizza. In Pizzas, I love onion cheese Pizza a lot. This is because cheese pizza is healthy and makes me strong. To create fun we also organize pizza races in terms of who can eat the maximum number of pizzas. I can eat many pizzas at a time.")
@@ -1554,7 +1591,6 @@ class SelfAssessmentLogin:
                 element.click()
                 self_assessment_obj.save_score_manual(1)
 
-
             wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active")))
             status_element = self.driver.find_element(By.XPATH,
                                                       "//div[@ng-if and contains(@ng-if, 'vm.data.testConfigs.isInstantEvaluation')]//span[@class='ng-binding']")
@@ -1563,7 +1599,7 @@ class SelfAssessmentLogin:
             # status = self.driver.find_element(By.XPATH,"div[ng-if='!(vm.data.testConfigs.isInstantEvaluation && vm.data.testConfigs.isAnyVideoQuestion)'] span[class='ng-binding']").text
             # print(status)
             time.sleep(2)
-            if status == 'Evaluated' :
+            if status == 'Evaluated':
                 eval_status = 'SUCCESS'
 
         except Exception as e:
@@ -1656,8 +1692,7 @@ class SelfAssessmentLogin:
         except Exception as e:
             print(f"Error in fetching score and percentage : {e}")
 
-        return score,percentage
-
+        return score, percentage
 
 
 self_assessment_obj = SelfAssessmentLogin()
