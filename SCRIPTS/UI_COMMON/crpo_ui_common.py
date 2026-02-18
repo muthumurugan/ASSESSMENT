@@ -1,7 +1,6 @@
 import time
 import traceback
 import platform
-import os
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -9,7 +8,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from pathlib import Path
 
 class CrpoCommon:
     def __init__(self):
@@ -68,7 +66,7 @@ class CrpoCommon:
             print(f"Error occurred while enabling checkboxes: {e}")
 
     def ui_login_to_crpo(self, user_name, password):
-        time.sleep(5)
+        self.wait_for_page_load()
         self.driver.find_element(By.NAME, 'loginName').clear()
         self.driver.find_element(By.NAME, 'loginName').send_keys(user_name)
         self.driver.find_element(By.XPATH, "//input[@type='password']").clear()
@@ -76,7 +74,7 @@ class CrpoCommon:
         self.driver.find_element(By.XPATH,
                                  '//*[@class = "btn btn-default button_style login ng-binding"]').click()
 
-    def wait_for_page_load(self, timeout=10):
+    def wait_for_page_load(self, timeout=60):
         """Waits until the page loading spinner disappears to ensure UI is ready."""
         try:
             wait = WebDriverWait(self.driver, timeout)  # Default timeout reduced to 15s for efficiency
@@ -98,7 +96,7 @@ class CrpoCommon:
         """Clicks on the filter button after ensuring the page is ready."""
         try:
             wait = WebDriverWait(self.driver, 10)
-            crpo_ui_obj.wait_for_page_load()
+            self.wait_for_page_load()
             # Click filter button if present
             filter_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@id='cardlist-view-filter']")))
             self.driver.execute_script("arguments[0].click();", filter_button)
@@ -110,23 +108,6 @@ class CrpoCommon:
             traceback.print_exc()
 
     def click_on_more_option(self):
-        """Clicks on the 'More Options' (three dots) menu safely and efficiently."""
-        try:
-            wait = WebDriverWait(self.driver, 20)  # Reduced timeout for better efficiency
-            crpo_ui_obj.wait_for_page_load()
-            # Find and click on more options
-            more_options = wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//a[@class='pointer fa fa-lg fa-ellipsis-v']"))
-            )
-            self.driver.execute_script("arguments[0].click();", more_options)
-
-        except TimeoutException:
-            print("⚠️ Warning: 'More Options' button not found or took too long to load.")
-        except Exception as e:
-            print(f"❌ Error clicking on 'More Options': {str(e)}")
-            traceback.print_exc()
-
-    def click_on_multiple_more_option(self):
         """Clicks on the 'More Options' (three dots) menu safely and efficiently."""
         try:
             wait = WebDriverWait(self.driver, 20)  # Reduced timeout for better efficiency
@@ -162,6 +143,7 @@ class CrpoCommon:
             )
             self.driver.execute_script("arguments[0].scrollIntoView();", button)
             self.driver.execute_script("arguments[0].click();", button)
+            time.sleep(2)
 
         except Exception as e:
             print("Error while searching by id : ", e)
@@ -254,6 +236,7 @@ class CrpoCommon:
             )
             self.driver.execute_script("arguments[0].scrollIntoView();", button)
             self.driver.execute_script("arguments[0].click();", button)
+            time.sleep(2)
 
         except Exception as e:
             print("Error while searching by test user id :",e)
@@ -273,6 +256,7 @@ class CrpoCommon:
             )
             self.driver.execute_script("arguments[0].scrollIntoView();", button)
             self.driver.execute_script("arguments[0].click();", button)
+            time.sleep(2)
 
         except Exception as e:
             print("Error while searching by test user id :",e)
@@ -301,29 +285,11 @@ class CrpoCommon:
         except Exception as e:
             print("Error while searching by id interview bot authoring:", e)
 
-    def filter_search_by_id_authoring_bot_old(self , value):
-        try:
-            wait = WebDriverWait(self.driver, 10)
-
-            # Wait for input field and enter test user id
-            id_box = wait.until(EC.presence_of_element_located((By.XPATH, "*//input[@name='Ids']")))
-            id_box.clear()
-            id_box.send_keys(value)
-
-            # test_user_id_box.send_keys(value)
-            button = wait.until(
-                EC.presence_of_element_located((By.XPATH, "//button[@class='btn btn-primary ng-binding']"))
-            )
-            self.driver.execute_script("arguments[0].scrollIntoView();", button)
-            self.driver.execute_script("arguments[0].click();", button)
-
-        except Exception as e:
-            print("Error while searching by id interview bot authoring :",e)
-
     def fetch_grid_actions(self, filter_function=None,
                            xpath="//div[@class='popover-content card-actions']/div") -> list:
         """Fetch grid actions from the assessment UI."""
         try:
+            time.sleep(1)
             # Apply filter if provided
             if filter_function:
                 filter_function()
@@ -338,6 +304,7 @@ class CrpoCommon:
     def fetch_bp_grid_actions(self):
         try:
             action_list = []
+            time.sleep(1)
 
             # Locate all action elements inside 'td.td-last.ng-scope'
             actions = self.driver.find_elements(By.CSS_SELECTOR, "td.td-last.ng-scope a")
@@ -402,10 +369,10 @@ class CrpoCommon:
             print(f"❌ Error while moving to first tab ' {str(e)}")
             traceback.print_exc()
 
-    def move_to_grid(self, grid_name, more=None):
+    def move_to_grid_old(self, grid_name, more=None):
         """Navigates to a specified grid in the UI."""
         try:
-            wait = WebDriverWait(self.driver, 10)
+            wait = WebDriverWait(self.driver, 60)
             self.wait_for_page_load()
             if more :
                 more_button = wait.until(
@@ -422,12 +389,50 @@ class CrpoCommon:
             print(f"❌ Error while navigating to grid '{grid_name}': {str(e)}")
             traceback.print_exc()
 
+    def move_to_grid(self, grid_name):
+        """Navigate to grid. If visible directly, click it.
+           Otherwise click 'More' and then click the grid."""
+        try:
+            wait = WebDriverWait(self.driver, 30)
+            self.wait_for_page_load()
+            time.sleep(2)
+
+            grid_locator = (By.XPATH, f"//a[normalize-space()='{grid_name}']")
+            grid_elements = self.driver.find_elements(*grid_locator)
+
+            if grid_elements:
+                print(f"🔹 Grid '{grid_name}' found directly on page.")
+                grid_button = wait.until(EC.element_to_be_clickable(grid_locator))
+            else:
+                print(f"🔹 Grid '{grid_name}' not visible. Clicking 'More'.")
+
+                # Click More
+                more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[normalize-space()='More']")))
+                self.driver.execute_script("arguments[0].click();", more_button)
+                time.sleep(1)
+                grid_button = wait.until(EC.element_to_be_clickable(grid_locator))
+
+            # Scroll and click grid
+            self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", grid_button)
+            self.driver.execute_script("arguments[0].click();", grid_button)
+
+            print(f"✅ Successfully moved to grid '{grid_name}'")
+            self.wait_for_page_load()
+
+        except TimeoutException:
+            print(f"❌ Timeout while navigating to grid '{grid_name}'")
+        except Exception as e:
+            print(f"❌ Error while navigating to grid '{grid_name}': {e}")
+            traceback.print_exc()
+
     def move_inside_authoring_grid(self, grid_name):
         """Navigates to a specified grid in the UI."""
         try:
             wait = WebDriverWait(self.driver, 10)
             element = wait.until(EC.element_to_be_clickable((By.XPATH, f"//span[@title='{grid_name}']")))
             self.driver.execute_script("arguments[0].click();", element)
+            print(f"✅ Successfully moved to grid '{grid_name}'")
+
 
         except Exception as e:
             print(f"❌ Error while navigating to '{grid_name}' grid inside authoring : {str(e)}")
@@ -591,7 +596,7 @@ class CrpoCommon:
             wait = WebDriverWait(self.driver, 10)
             results = []
             grid_actions_list = []
-            self.move_to_grid(grid_name, 1)
+            self.move_to_grid(grid_name)
 
             if test_id:
                 self.click_on_filter_button()
@@ -634,7 +639,7 @@ class CrpoCommon:
             wait = WebDriverWait(self.driver, 10)
             results = []
             grid_actions_list = []
-            self.move_to_grid(grid_name, 1)
+            self.move_to_grid(grid_name)
 
             self.move_inside_authoring_grid(sub_grid)
             self.move_to_next_tab()
