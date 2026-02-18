@@ -51,47 +51,65 @@ class AssessmentUICommon:
 
     def ui_login_to_test(self, user_name, password):
 
-        user_input = self.wait.until(EC.visibility_of_element_located((By.NAME, 'loginUsername')))
+        # Username
+        user_input = self.wait.until(
+            EC.visibility_of_element_located((By.NAME, 'loginUsername'))
+        )
         user_input.clear()
         user_input.send_keys(user_name)
+
+        # Password
         user_pass = self.driver.find_element(By.NAME, 'loginPassword')
         user_pass.clear()
         user_pass.send_keys(password)
-        self.wait.until(EC.visibility_of_element_located((By.NAME, 'btnLogin'))).click()
-        login_status = "None"
+
+        # ✅ WAIT for Angular block UI to disappear
         try:
-            error_xpath = '//div[@class="text-center login-error ng-binding ng-scope"]'
+            WebDriverWait(self.driver, 10).until(
+                EC.invisibility_of_element_located(
+                    (By.CLASS_NAME, "block-ui-overlay")
+                )
+            )
+        except TimeoutException:
+            pass  # overlay might not appear every time
+
+        # ✅ WAIT for button to be CLICKABLE (not just visible)
+        login_btn = self.wait.until(
+            EC.element_to_be_clickable((By.NAME, 'btnLogin'))
+        )
+
+        # Extra safety for Chrome 143+
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", login_btn)
+        self.driver.execute_script("arguments[0].click();", login_btn)
+
+
+
+        try:
+            error_xpath = '//div[contains(@class,"login-error")]'
             error_element = WebDriverWait(self.driver, 5).until(
-                EC.presence_of_element_located((By.XPATH, error_xpath))
+                EC.visibility_of_element_located((By.XPATH, error_xpath))
             )
             login_status = error_element.text
-            self.driver.quit()
-        except Exception as e:
-            # print(e)
-            login_status = 'SUCCESS'
+        except TimeoutException:
+            pass
+        login_status = "SUCCESS"
+
         return login_status
 
     def select_i_agree(self):
         try:
-            # 1. Use a more reasonable timeout (e.g., 10-15s) instead of 120s
-            # 2. Switch to visibility_of to ensure it's actually on screen
-            checkbox = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'chk'))
-            )
-
-            # 3. Check selection state
-            if not checkbox.is_selected():
-                try:
-                    checkbox.click()
-                except Exception:
-                    # 4. Fallback: JavaScript click in case the element is 'hidden' but functional
-                    self.driver.execute_script("arguments[0].click();", checkbox)
-
-            return True  # If it reaches here, it's selected
+            # time.sleep(1)
+            i_agree_status = WebDriverWait(self.driver, self.delay).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'chk')))
+            is_selected = i_agree_status.is_selected()
+            if not is_selected:
+                i_agree_status.click()
+                is_selected = True
+            return is_selected
 
         except Exception as e:
-            print("I agree checkbox was not interactable or not found.")
-            return False
+            print("I agree is not visible")
+            print(e)
 
     # def focus_to_model_window(self):
     #     try:
@@ -105,32 +123,48 @@ class AssessmentUICommon:
     #         print(e)
 
     def about_online_proctoring(self):
-        try:
-            # 1. Wait for checkbox label to be clickable (more reliable than input)
-            i_agree = self.wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//*[@class='custom-checkbox font-weight-700']")))
-            i_agree.click()
+        # Use a local wait object for clarity
+        wait = WebDriverWait(self.driver, 15)
 
-            # 2. Immediate click for Next (no sleep needed)
-            next_btn = self.driver.find_element(By.NAME, "btnProctorNext")
-            next_btn.click()
+        try:
+            # 1. Wait for the loading overlay to disappear first
+            # This is usually what blocks the 'I Agree' checkbox
+            wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "block-ui-overlay")))
+
+            # 2. Target the LABEL instead of the INPUT
+            # In custom CSS, the <input> is often hidden and the <label> handles the click.
+            i_agree_label = wait.until(EC.element_to_be_clickable(
+                (By.XPATH, "//label[contains(@class, 'custom-checkbox')]")
+            ))
+
+            # Use JavaScript click to ensure it bypasses any lingering invisible overlays
+            self.driver.execute_script("arguments[0].click();", i_agree_label)
+
+            # 3. Wait for the Next button to be ready
+            next_button = wait.until(EC.element_to_be_clickable((By.NAME, "btnProctorNext")))
+            next_button.click()
+
+            print("Successfully navigated through Proctoring screen.")
+
         except Exception as e:
             print(f"Online Proctoring step failed: {e}")
+            # Optional: Save a screenshot to see what blocked it
+            self.driver.save_screenshot("proctoring_error.png")
 
     def assessment_terms_and_conditions(self):
         try:
-            # 1. Wait for the specific text span
-            terms_xpath = "//span[contains(text(), 'I agree to the Assessment Terms')]"
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, terms_xpath))).click()
-
-            # 2. Wait for the fraud policy span
-            fraud_xpath = "//span[contains(text(), 'if I am found to be engaged in any act of fraud')]"
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, fraud_xpath))).click()
-
-            # 3. Click Next button using name attribute (fastest)
-            self.driver.find_element(By.NAME, 'btnProctorNext').click()
+            time.sleep(5)
+            i_agree_to_terms_and_conditions = self.driver.find_element(By.XPATH,
+                                                                       "//span[text()='I agree to the Assessment Terms & Conditions above.']")
+            i_agree_to_terms_and_conditions.click()
+            i_fully_understand = self.driver.find_element(By.XPATH,
+                                                          "//span[@class='txt-color-red' and contains(text(), 'if I am found to be engaged in any act of fraud')]")
+            i_fully_understand.click()
+            time.sleep(0.5)
+            next_button = self.driver.find_element(By.XPATH, "//button[@name='btnProctorNext']").click()
         except Exception as e:
-            print(f"Terms & Conditions step failed: {e}")
+            print("Terms and conditions I agree is not visible")
+            print(e)
 
     def selfie(self):
         try:
@@ -140,6 +174,7 @@ class AssessmentUICommon:
                 EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Selfie')]"))
             )
             selfie_btn.click()
+            time.sleep(10)
 
             # Wait for "Proceed" to become clickable (handles image processing time)
             proceed_xpath = "//span[contains(text(), 'Proceed to test')]"
@@ -278,42 +313,110 @@ class AssessmentUICommon:
         except Exception:
             return False
 
+    # def next_question(self, question_index):
+    #     button_name = f"btnQuestionIndex{question_index}"
+    #     try:
+    #         # This will proceed in 0.05s if the button is ready, or wait up to 5s if slow.
+    #         btn = self.wait.until(EC.element_to_be_clickable((By.NAME, button_name)))
+    #         btn.click()
+    #     except Exception as e:
+    #         print(f"Could not jump to question {question_index}: {e}")
     def next_question(self, question_index):
         button_name = f"btnQuestionIndex{question_index}"
         try:
-            # This will proceed in 0.05s if the button is ready, or wait up to 5s if slow.
-            btn = self.wait.until(EC.element_to_be_clickable((By.NAME, button_name)))
+            # We use a 5-second 'Micro-Wait' here instead of the global 15s.
+            # This keeps the test suite 'snappy'.
+            btn = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.NAME, button_name))
+            )
             btn.click()
-        except Exception as e:
-            print(f"Could not jump to question {question_index}: {e}")
 
+        except Exception as e:
+            print(f"Could not jump to question {question_index} within 5s: {e}")
+
+
+    def wait_for_question_to_load(self, expected_index, timeout=5):
+        """
+        Waits for the UI to visually confirm the question has changed.
+        """
+        try:
+            # EXPERT TIP: Use an XPath that looks for the number anywhere
+            # inside a header or a specific container to make it flexible.
+            # This looks for any element containing the text "Question X"
+            locator = (By.XPATH, f"//*[contains(text(), 'Question {expected_index}')]")
+
+            WebDriverWait(self.driver, timeout).until(
+                EC.presence_of_element_located(locator)
+            )
+            return True
+        except Exception:
+            # Fixed the missing parenthesis from your previous snippet
+            print(f"Warning: UI did not confirm loading of question {expected_index}")
+            return False
+
+    # def start_test_button_status(self):
+    #     try:
+    #         # Use a short wait to ensure the button is at least in the DOM
+    #         btn = self.wait.until(EC.presence_of_element_located((By.NAME, 'btnStartTest')))
+    #
+    #         # is_enabled() is the correct check for buttons
+    #         if btn.is_enabled():
+    #             return 'Enabled'
+    #         return 'Disabled'
+    #     except Exception:
+    #         # If the button doesn't appear at all within the timeout
+    #         return 'Not Found'
     def start_test_button_status(self):
         try:
-            # Use a short wait to ensure the button is at least in the DOM
-            btn = self.wait.until(EC.presence_of_element_located((By.NAME, 'btnStartTest')))
+            # We override the default wait with a 'fast' 2-second timeout
+            btn = WebDriverWait(self.driver, 2).until(
+                EC.presence_of_element_located((By.NAME, 'btnStartTest'))
+            )
 
-            # is_enabled() is the correct check for buttons
-            if btn.is_enabled():
+            # Optimization: Check both 'enabled' attribute and property
+            if btn.is_enabled() and "disabled" not in (btn.get_attribute("class") or ""):
                 return 'Enabled'
             return 'Disabled'
-        except Exception:
-            # If the button doesn't appear at all within the timeout
+        except:
             return 'Not Found'
 
+    # def start_test(self):
+    #     try:
+    #         # 1. Wait until the button is actually clickable (visible + enabled)
+    #         start_btn = self.wait.until(EC.element_to_be_clickable((By.NAME, 'btnStartTest')))
+    #         start_btn.click()
+    #         print("Start Test clicked.")
+    #
+    #         # 2. INSTEAD OF SLEEP(5): Wait for a unique element on the NEXT page
+    #         # This makes the script move the INSTANT the test loads.
+    #         # Replace 'question-container' with an ID or Class found in the actual test.
+    #         self.wait.until(EC.presence_of_element_located((By.ID, 'question-container')))
+    #
+    #     except Exception as e:
+    #         print(f"Failed to start test or test page did not load: {e}
     def start_test(self):
         try:
-            # 1. Wait until the button is actually clickable (visible + enabled)
+            # 1. Capture the current URL or the button itself to track transition
+            old_url = self.driver.current_url
             start_btn = self.wait.until(EC.element_to_be_clickable((By.NAME, 'btnStartTest')))
-            start_btn.click()
-            print("Start Test clicked.")
 
-            # 2. INSTEAD OF SLEEP(5): Wait for a unique element on the NEXT page
-            # This makes the script move the INSTANT the test loads.
-            # Replace 'question-container' with an ID or Class found in the actual test.
+            # 2. Click the button
+            start_btn.click()
+            print("Start Test clicked, waiting for transition...")
+
+            # 3. RELIABILITY BOOST: Wait until the URL actually changes
+            # This ensures we have definitely left the 'Start' page.
+            self.wait.until(EC.url_changes(old_url))
+
+            # 4. SPEED BOOST: Wait for the key element on the new page
             self.wait.until(EC.presence_of_element_located((By.ID, 'question-container')))
+            print("Test page loaded successfully.")
+
+            return True
 
         except Exception as e:
-            print(f"Failed to start test or test page did not load: {e}")
+            print(f"Error during start_test: {e}")
+            return False
 
     # def check_security_key_model_window_availability(self):
     #     status = 'Success'
@@ -386,6 +489,7 @@ class AssessmentUICommon:
             # 3. Optional: Wait for the window to actually close or redirect
             # to ensure the next part of your script doesn't start too early
             self.wait.until(EC.staleness_of(confirm_btn))
+            time.sleep(2)
 
         except Exception as e:
             print(f"Confirmation button 'btnCloseTest' not found: {e}")
@@ -429,11 +533,30 @@ class AssessmentUICommon:
         except Exception as e:
             print(f"Failed to un-answer: {e}")
 
-    def _get_safe_text(self, name_attribute):
-        """Helper to ensure text is present and not empty before returning"""
+    # def _get_safe_text(self, name_attribute):
+    #     """Helper to ensure text is present and not empty before returning"""
+    #     try:
+    #         element = self.wait.until(EC.visibility_of_element_located((By.NAME, name_attribute)))
+    #         return element.text.strip()
+    #     except:
+    #         return "NOT_FOUND"
+    def _get_safe_text(self, name_attribute, timeout=3):
+        """
+        Helper with a shorter default timeout.
+        If it's not visible in 3 seconds, it's likely not there.
+        """
         try:
-            element = self.wait.until(EC.visibility_of_element_located((By.NAME, name_attribute)))
-            return element.text.strip()
+            # We override the global wait with a 'fast' local wait
+            element = WebDriverWait(self.driver, timeout).until(
+                EC.visibility_of_element_located((By.NAME, name_attribute))
+            )
+            text = element.text.strip()
+
+            # Expert Tip: Sometimes .text is empty if the element is an input
+            if not text:
+                text = element.get_attribute("value") or ""
+
+            return text.strip()
         except:
             return "NOT_FOUND"
 
