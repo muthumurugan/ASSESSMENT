@@ -355,22 +355,24 @@ class AssessmentCommon:
         compilation_results = {}
         status = 'Pending'
         counter = 1
-        if counter <= 12:
-            while status != 'SUCCESS':
-                counter += 1
-                response = requests.post(
-                    assessment_common_obj.main_domain + "/py/assessment/htmltest/api/v1/code-compiler-get-result/",
-                    headers=token,
-                    data=json.dumps(request, default=str), verify=False)
-                print("Is Server by ECS - Code compiler Result", response.headers.get('X-ServedByEcs'))
-                compilation_results = response.json()
 
-                if compilation_results['codingCompileResponse'] is None:
-                    time.sleep(5)
-                else:
-                    status = "SUCCESS"
-        else:
+        while status != 'SUCCESS' and counter <= 12:
+            counter += 1
+            response = requests.post(
+                assessment_common_obj.main_domain + "/py/assessment/htmltest/api/v1/code-compiler-get-result/",
+                headers=token,
+                data=json.dumps(request, default=str), verify=False)
+            print("Is Server by ECS - Code compiler Result", response.headers.get('X-ServedByEcs'))
+            compilation_results = response.json()
+
+            if compilation_results.get('codingCompileResponse') is None:
+                time.sleep(5)
+            else:
+                status = "SUCCESS"
+
+        if status != "SUCCESS":
             print("TimedOut")
+
         return compilation_results
 
     @staticmethod
