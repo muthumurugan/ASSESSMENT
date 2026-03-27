@@ -55,7 +55,7 @@ class CrpoCommon:
         return response.json()
 
     @staticmethod
-    def force_evaluate_proctoring(token, tu_ids):
+    def force_evaluate_proctoring_old(token, tu_ids):
         logging.info('Entered to force evaluate proctoring')
         request = {
             "testUserIds": tu_ids, "isForce": True}
@@ -65,6 +65,42 @@ class CrpoCommon:
                                  data=json.dumps(request, default=str), verify=False)
         logging.info(response.json())
         return response.json()
+
+    @staticmethod
+    def force_evaluate_proctoring(token, tu_ids):
+        logging.info('Entered to force evaluate proctoring')
+        headers = token.copy()
+        request_payload = {"testUserIds":tu_ids, "isForce":True}
+        response = requests.post(
+            crpo_common_obj.domain + "/py/assessment/htmltest/api/v1/initiate-test-proc/?isSync=false", headers=headers,
+            json=request_payload,  # better than data=json.dumps
+            verify=False)
+
+        # Extract x-guid from response headers
+        x_guid = response.headers.get("x-guid")
+
+        # If API failed
+        if response.status_code != 200:
+            print("Force evaluate API failed")
+            print(f"Status Code: {response.status_code}")
+            print(f"x-guid: {x_guid}")
+            return None
+
+        # If empty response
+        if not response.text.strip():
+            print("Force evaluate API returned empty response")
+            print(f"x-guid: {x_guid}")
+            return None
+
+        try:
+            response_json = response.json()
+            logging.info(response_json)
+            return response_json
+        except ValueError:
+            print("Invalid JSON received in force evaluate API")
+            print(f"Status Code: {response.status_code}")
+            print(f"x-guid: {x_guid}")
+            return None
 
     # interviews Grid
     @staticmethod
@@ -102,37 +138,56 @@ class CrpoCommon:
 
     @staticmethod
     def job_status_v2(token, contextguid):
+
         print(contextguid)
         logging.info('Entered to jobstatus v2')
 
         request = {"ContextGUID":contextguid}
-        job_state = 'PENDING'
-        resp_dict = {}
-        counter = 0
 
-        while job_state != 'SUCCESS' and counter < 25:
+        job_state = "PENDING"
+        resp_dict = {}
+
+        counter = 0
+        max_retry = 25
+
+        while job_state != "SUCCESS" and counter < max_retry:
+
             counter += 1
 
-            response = requests.post(crpo_common_obj.domain + "/py/crpo/api/v1/getStatusOfAsyncAPI", headers=token,
-                data=json.dumps(request, default=str), verify=False)
+            try:
+                response = requests.post(crpo_common_obj.domain + "/py/crpo/api/v1/getStatusOfAsyncAPI", headers=token,
+                    data=json.dumps(request, default=str), verify=False, timeout=30)
 
-            # 🔐 SAFETY CHECK
+            except requests.exceptions.RequestException as e:
+                print(f"job_status_v2: Request failed: {e}")
+                time.sleep(10)
+                continue
+
+            # 🔐 Empty response protection
             if not response.content or not response.content.strip():
                 print("job_status_v2: Empty response received")
                 time.sleep(30)
                 continue
 
             try:
-                resp_dict = json.loads(response.content)
-            except json.JSONDecodeError:
+                resp_dict = response.json()
+            except ValueError:
                 print(f"job_status_v2: Non-JSON response: {response.text}")
                 time.sleep(30)
                 continue
 
-            job_state = resp_dict.get('data', {}).get('JobState', 'PENDING')
+            job_state = resp_dict.get("data", {}).get("JobState", "PENDING")
+
+            print(f"Job status: {job_state} (attempt {counter})")
+
+            # exit immediately if finished
+            if job_state == "SUCCESS":
+                break
+
             time.sleep(30)
 
         logging.info(resp_dict)
+
         return resp_dict
 
     @staticmethod
@@ -164,7 +219,7 @@ class CrpoCommon:
             logging.info(response)
 
     @staticmethod
-    def proctor_evaluation_detail(token, testuser_id):
+    def proctor_evaluation_detail_old(token, testuser_id):
         logging.info("Entered to proctor evaluation %s", testuser_id)
         token.pop('X-APPLMA', None)
         request = {"testUserId": testuser_id}
@@ -176,8 +231,45 @@ class CrpoCommon:
         logging.info(tu_proctor_details)
         return tu_proctor_details
 
+
     @staticmethod
-    def get_tu_proc_screen_data(token, testuser_id):
+    def proctor_evaluation_detail(token, testuser_id):
+        logging.info("Entered to proctor evaluation %s", testuser_id)
+        headers = token.copy()
+        headers.pop('X-APPLMA', None)
+        request_payload = {"testUserId":testuser_id}
+        response = requests.post(crpo_common_obj.domain + "/py/assessment/testuser/api/v1/get_proctor_detail/",
+            headers=headers, json=request_payload, verify=False)
+
+        # Extract x-guid from response headers
+        x_guid = response.headers.get("X-Guid")
+
+        # If API failed
+        if response.status_code != 200:
+            print(f"API failed for testuser_id {testuser_id}")
+            print(f"Status Code: {response.status_code}")
+            print(f"x-guid: {x_guid}")
+            return None
+
+        # If response body is empty
+        if not response.text.strip():
+            print(f"Empty response received for testuser_id {testuser_id}")
+            print(f"x-guid: {x_guid}")
+            return None
+
+        try:
+            tu_proctor_details = response.json()
+            logging.info(tu_proctor_details)
+            return tu_proctor_details
+
+        except ValueError:
+            print(f"Invalid JSON received for testuser_id {testuser_id}")
+            print(f"Status Code: {response.status_code}")
+            print(f"x-guid: {x_guid}")
+            return None
+
+    @staticmethod
+    def get_tu_proc_screen_data_old(token, testuser_id):
         logging.info("Entered to proctor evaluation %s", testuser_id)
         # token.pop('X-APPLMA', None)
         request = testuser_id
@@ -188,6 +280,40 @@ class CrpoCommon:
         tu_proctor_details = response.json()
         logging.info(tu_proctor_details)
         return tu_proctor_details
+
+    @staticmethod
+    def get_tu_proc_screen_data(token, testuser_id):
+        logging.info("Entered to get TU proc screen data %s", testuser_id)
+        headers = token.copy()
+        response = requests.post(crpo_common_obj.domain + "/py/assessment/testuser/api/v1/get_tu_proc_screen_data/",
+            headers=headers, json=testuser_id,  # better than data=json.dumps
+            verify=False)
+        time.sleep(10)
+        # Extract x-guid header
+        x_guid = response.headers.get("x-guid")
+
+        # If API failed
+        if response.status_code != 200:
+            print(f"get_tu_proc_screen_data API failed for testuser_id {testuser_id}")
+            print(f"Status Code: {response.status_code}")
+            print(f"x-guid: {x_guid}")
+            return None
+
+        # If empty response
+        if not response.text.strip():
+            print(f"Empty response for testuser_id {testuser_id}")
+            print(f"x-guid: {x_guid}")
+            return None
+
+        try:
+            tu_proctor_details = response.json()
+            logging.info(tu_proctor_details)
+            return tu_proctor_details
+        except ValueError:
+            print(f"Invalid JSON received for testuser_id {testuser_id}")
+            print(f"Status Code: {response.status_code}")
+            print(f"x-guid: {x_guid}")
+            return None
 
     @staticmethod
     def save_apppreferences(token, content, id, type):
@@ -315,11 +441,57 @@ class CrpoCommon:
     @staticmethod
     def candidate_transcript_report(token, request_payload):
         logging.info('candidatetranscript started')
-        response = requests.post(crpo_common_obj.domain + "/py/assessment/report/api/v1/candidatetranscript/",
-                                 headers=token, data=json.dumps(request_payload, default=str), verify=False)
-        resp_dict = json.loads(response.content)
-        logging.info(resp_dict)
-        return resp_dict
+        url = crpo_common_obj.domain + "/py/assessment/report/api/v1/candidatetranscript/"
+        headers = token
+        data = json.dumps(request_payload, default=str)
+        
+        max_retries = 3
+        retry_delay = 2  # Initial delay in seconds
+        
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    url,
+                    headers=headers,
+                    data=data,
+                    verify=False,
+                    timeout=(30, 300)  # (connect timeout, read timeout) - 30s to connect, 5min to read
+                )
+                resp_dict = json.loads(response.content)
+                logging.info(resp_dict)
+                return resp_dict
+                
+            except requests.exceptions.ConnectionError as e:
+                if attempt < max_retries - 1:
+                    wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
+                    logging.warning(f'Connection error on attempt {attempt + 1}/{max_retries}: {str(e)}')
+                    logging.info(f'Retrying in {wait_time} seconds...')
+                    time.sleep(wait_time)
+                else:
+                    logging.error(f'Connection error after {max_retries} attempts: {str(e)}')
+                    raise
+                    
+            except requests.exceptions.Timeout as e:
+                if attempt < max_retries - 1:
+                    wait_time = retry_delay * (2 ** attempt)
+                    logging.warning(f'Timeout error on attempt {attempt + 1}/{max_retries}: {str(e)}')
+                    logging.info(f'Retrying in {wait_time} seconds...')
+                    time.sleep(wait_time)
+                else:
+                    logging.error(f'Timeout error after {max_retries} attempts: {str(e)}')
+                    raise
+                    
+            except requests.exceptions.RequestException as e:
+                logging.error(f'Request error: {str(e)}')
+                raise
+                
+            except (json.JSONDecodeError, ValueError) as e:
+                logging.error(f'Failed to parse JSON response: {str(e)}')
+                try:
+                    logging.error(f'Response content: {response.content[:500]}')
+                except NameError:
+                    logging.error('Response content: No response available')
+                raise
 
     @staticmethod
     def initiate_vendor_score(crpotoken, cid, test_id):

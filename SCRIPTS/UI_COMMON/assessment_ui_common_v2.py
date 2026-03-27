@@ -387,7 +387,7 @@ class AssessmentUICommon:
         except Exception as e:
             print(f"FIB Error: Could not find or fill the blank. {e}")
 
-    def select_answer_for_mca_question(self, answer):
+    def select_answer_for_mca_question_old(self, answer):
         if not answer:
             return
 
@@ -410,6 +410,31 @@ class AssessmentUICommon:
 
             except Exception as e:
                 print(f"MCA Error: Option '{option_id}' not found or clickable. {e}")
+
+    def select_answer_for_mca_question(self, answer):
+        if not answer:
+            return
+
+        answer_choices = [ opt.strip() for opt in answer.split(',') ]
+
+        for option_id in answer_choices:
+            try:
+                # Target LABEL (most stable)
+                xpath = f"//input[@id='{option_id}']/ancestor::label"
+
+                elem = WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.XPATH, xpath)))
+
+                # Wait until Angular finishes rendering
+                WebDriverWait(self.driver, 10).until(lambda d:elem.is_displayed() and elem.is_enabled())
+
+                # Scroll into view
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", elem)
+
+                # Click via JS (bypasses overlay issues)
+                self.driver.execute_script("arguments[0].click();", elem)
+
+            except Exception as e:
+                print(f"MCA Error: Option '{option_id}' failed. {e}")
 
     def check_answered_status(self, previous_answer):
         try:

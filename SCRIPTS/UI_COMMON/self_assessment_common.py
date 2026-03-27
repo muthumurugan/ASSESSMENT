@@ -1,7 +1,10 @@
 import datetime
+import time
+
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException, \
     StaleElementReferenceException, ElementClickInterceptedException
 from SCRIPTS.UI_COMMON.assessment_ui_common_v2 import *
+from SCRIPTS.COMMON.io_path import *
 
 
 class SelfAssessmentLogin:
@@ -450,8 +453,10 @@ class SelfAssessmentLogin:
                 'self_assessment.xls')
             upload_element = self.driver.find_element(By.XPATH,
                                                       "//label[text()='File Name:']/following::div//input[@type='file']")
-            file_path = 'D:/automation_new/ASSESSMENT/PythonWorkingScripts_InputData/UI/Assessment/self_assessment.xls'
-            upload_element.send_keys(file_path)
+            # file_path = 'D:/automation_new/ASSESSMENT/PythonWorkingScripts_InputData/UI/Assessment/self_assessment.xls'
+            file_path = Path(input_path_ui_self_assessment).resolve()
+            upload_element.send_keys(str(file_path))
+            # upload_element.send_keys(file_path)
 
             growl_message_locator = (By.XPATH, "//div[@class='growl-message ng-binding']")
             growl_message = wait.until(EC.visibility_of_element_located(growl_message_locator))
@@ -1125,6 +1130,7 @@ class SelfAssessmentLogin:
         update_test_status = 'FAILED'
         try:
             print("Update Test")
+            time.sleep(1)
             wait = WebDriverWait(self.driver, 120)
 
             test_settings = wait.until(
@@ -1133,6 +1139,7 @@ class SelfAssessmentLogin:
             wait.until(
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
+            time.sleep(1)
 
             self.driver.find_element(By.XPATH,
                                      "//label[contains(text(),'Shuffle Questions')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
@@ -1144,7 +1151,7 @@ class SelfAssessmentLogin:
                                      "//label[contains(text(),'Restrict Navigation from Test')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
             self.driver.find_element(By.XPATH,
                                      "//label[contains(text(),'Choose Proctoring Mode')]/following-sibling::div//label[contains(@class, 'btn-sm') and contains(., 'Off')]").click()
-
+            time.sleep(1)
             update_test = wait.until(
                 EC.element_to_be_clickable(
                     (By.XPATH, "//button[contains(@class, 'btn-primary') and contains(., 'Update')]")))
@@ -1478,9 +1485,12 @@ class SelfAssessmentLogin:
             # Locate the file input element
             upload_input = self.driver.find_element(By.XPATH, "//input[@type='file']")
             # Path to the file to be uploaded
-            file_path = 'D:/automation_new/ASSESSMENT/PythonWorkingScripts_InputData/UI/Assessment/self_assessment.xls'
+            # file_path = 'D:/automation_new/ASSESSMENT/PythonWorkingScripts_InputData/UI/Assessment/self_assessment.xls'
             # Send the file path to the input element
-            upload_input.send_keys(file_path)
+            file_path = Path(input_path_ui_self_assessment).resolve()
+            # upload_element.send_keys(str(file_path))
+
+            upload_input.send_keys(str(file_path))
             # Wait for growl message and print it
             growl_message_locator = (By.XPATH, "//div[@class='growl-message ng-binding']")
             growl_message = wait.until(EC.visibility_of_element_located(growl_message_locator))

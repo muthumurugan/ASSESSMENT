@@ -89,3 +89,13 @@ automation_face_liveliness_proctor_eval_app_pref = {"overall":0.3, "video":{"ges
         "confThresholdList":[ {"from":80, "to":100, "weightage":0.712, "count":1},
             {"from":50, "to":79, "weightage":0.512, "count":1} ]}, "virtualBgConfig":{"isEnabled":True,
         "confThresholdList":[ {"from":80, "to":100, "weightage":0.812, "count":1} ]}}}}
+
+automation_video_proctor_eval_app_pref = {"video":{"blurVirtualBg":{"isEnabled":True, "blurBgConfig":{"isEnabled":True,
+    "confThresholdList":[ {"from":80, "to":100, "weightage":0.712, "count":2},
+        {"from":50, "to":79, "weightage":0.512, "count":2} ]},
+    "virtualBgConfig":{"isEnabled":True, "confThresholdList":[ {"from":80, "to":100, "weightage":0.812, "count":2} ]}},
+    "weightage":0.3, "zero_count":3, "multiple_count":1, "zero_timespan":60, "multipleIntervalCount":{"isEnabled":True,
+        "intervalCount":[ {"weightage":0.32, "count":1, "interval":60}, {"weightage":0.31, "count":2, "interval":30} ]},
+    "isEnabled":True, "multiple_timespan":10, "zeroIntervalCount":{"isEnabled":True,
+        "intervalCount":[ {"weightage":0.34, "count":1, "interval":60},
+            {"weightage":0.33, "count":2, "interval":30} ]}}}

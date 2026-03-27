@@ -141,24 +141,64 @@ class ResetTestUser:
         cursor.execute(update_applicant_status8)
         db_connection.commit()
 
+        # CASE 4.1 (BOT_PASSWORD_EXPIRED_TO_PASSWORD_DISABLED) Attending_to_Password_Disabled
+        # Test level is_password_never_expire flag should not be enabled
+        update_tuser4_1 = "update test_users set status = 4, is_password_disabled = 0 where id = 3859381 and test_id = " \
+                        "27805 and candidate_id = 1597137; "
+        print(update_tuser4_1)
+        cursor.execute(update_tuser4_1)
+        db_connection.commit()
 
-        # # CASE 9 (SUBMIT_REACTIVATED_INITIATE_AUTOMATION) Not_Attended_without_logintime_to_Attended_With_Inititate_Automation
-        #
-        # update_tuser9 = "update test_users set  login_time = NULL, log_out_time = " \
-        #                 "NULL, total_score = NULL, percentage = NULL, status = 0, time_spent = 65,"\
-        #                 "correct_answers = NULL, in_correct_answers = NULL, un_attended_questions=NULL, " \
-        #                 "is_partially_evaluated = NULL, eval_status = NULL, eval_by = NULL, eval_on = NULL, " \
-        #                 "json_config = NULL, automation_task_id = NULL, automation_info = NULL, evaluation_info = " \
-        #                 "NULL where id in (3842633, 3842635) and candidate_id in (1586785, 1586787) and test_id = 27049"
-        # print(update_tuser9)
-        # cursor.execute(update_tuser9)
-        # db_connection.commit()
-        #
-        # update_applicant_status9 = "update applicant_statuss set current_status_id = 167301, comments = NULL where id " \
-        #                            "in (1411527,1411529) and candidate_id in (1586785, 1586787) and tenant_id= 1787; "
-        # print(update_applicant_status9)
-        # cursor.execute(update_applicant_status9)
-        # db_connection.commit()
+        # CASE 5.1 (BOT_SUBMIT_PASSWORD_NEVER_EXPIRED) Attending_to_Attended
+        # Test level is_password_never_expire flag should be enabled
+        update_tuser5_1 = "update test_users set status = 4, log_out_time = NULL where id = 3859465 and test_id = 21713 " \
+                        "and candidate_id = 1597143; "
+        print(update_tuser5_1)
+        cursor.execute(update_tuser5_1)
+        db_connection.commit()
+
+        # CASE 6.1 (BOT_SUBMIT_PASSWORD_DISABLED) Password_Disabled_to_Attended
+        # Test level is_password_never_expire flag should not be enabled
+        update_tuser6_1 = "update test_users set status = 5, is_password_disabled = 1, log_out_time = NULL where id = " \
+                        "3859389 and test_id = 27805 and candidate_id = 1597139; "
+        print(update_tuser6_1)
+        cursor.execute(update_tuser6_1)
+        db_connection.commit()
+
+        # CASE 7.1 (BOT_NON_VENDOR_INITIATE_AUTOMATION) Attended_to_Attended_With_Inititate_Automation
+        update_tuser7_1 = "update test_users set  login_time = DATE_SUB(NOW(),INTERVAL 60 MINUTE), log_out_time = " \
+                        "DATE_SUB(NOW(),INTERVAL 55 MINUTE), total_score = NULL, percentage = NULL," \
+                        "correct_answers = NULL, in_correct_answers = NULL, un_attended_questions=NULL, " \
+                        "is_partially_evaluated = NULL, eval_status = NULL, eval_by = NULL, eval_on = NULL, " \
+                        "json_config = NULL, automation_task_id = NULL, automation_info = NULL, evaluation_info = " \
+                        "NULL where id in (3859513) and candidate_id in(1597153) and test_id = 27805"
+        print(update_tuser7_1)
+        cursor.execute(update_tuser7_1)
+        db_connection.commit()
+
+        update_applicant_status7_1 = "update applicant_statuss set current_status_id = 167301, comments = NULL where id " \
+                                   "in(1426731) and candidate_id in(1597153) and tenant_id= 1787; "
+        print(update_applicant_status7_1)
+        cursor.execute(update_applicant_status7_1)
+        db_connection.commit()
+
+        # CASE 8.1 (BOT_SUBMIT_NOT_ATTENDED_INITIATE_AUTOMATION) Not_Attended_with_logintime_to_Attended_With_Inititate_Automation
+
+        update_tuser8_1 = "update test_users set  login_time = DATE_SUB(NOW(),INTERVAL 60 MINUTE), log_out_time = " \
+                        "NULL, total_score = NULL, percentage = NULL, status = 0, time_spent = 65," \
+                        "correct_answers = NULL, in_correct_answers = NULL, un_attended_questions=NULL, " \
+                        "is_partially_evaluated = NULL, eval_status = NULL, eval_by = NULL, eval_on = NULL, " \
+                        "json_config = NULL, automation_task_id = NULL, automation_info = NULL, evaluation_info = " \
+                        "NULL where id in (3859393) and candidate_id in (1597145) and test_id = 27805"
+        print(update_tuser8_1)
+        cursor.execute(update_tuser8_1)
+        db_connection.commit()
+
+        update_applicant_status8_1 = "update applicant_statuss set current_status_id = 167301, comments = NULL where id " \
+                                   "in (1426639) and candidate_id in (1597145) and tenant_id= 1787; "
+        print(update_applicant_status8_1)
+        cursor.execute(update_applicant_status8_1)
+        db_connection.commit()
 
         db_connection.close()
 

@@ -9,15 +9,13 @@ from SCRIPTS.CRPO_COMMON.proc_eval_config import *
 
 class FaceLiveliness:
     def __init__(self):
-        write_excel_object.save_result(output_path_face_liveliness_proctor_evaluation)
+        write_excel_object.save_result(output_path_blur_virtual_proctor_evaluation)
         # 0th Row Header
         header = ['Proctoring Evaluation automation']
         # 1 Row Header
         write_excel_object.write_headers_for_scripts(0, 0, header, write_excel_object.black_color_bold)
-        header = ['Testcases', 'Status', 'Test ID', 'Candidate ID', 'Testuser ID', 'Expected Liveness proct status',
-                  'Actual Liveness proct status','Expected Liveness proct count',
-                  'Actual Liveness proct count',
-                  'Expected overall proctoring status',
+        header = ['Testcases', 'Status', 'Test ID', 'Candidate ID', 'Testuser ID', 'Expected blur proct status',
+                  'Actual blur proct status', 'Expected overall proctoring status',
                   'Actual overall proctoring status', 'Expected overall rating', 'Actual overall rating',
                   'Expected Video proctoring status', 'Actual Video Proctoring status','Expected proctoring reason',
                   'Actual proctoring reason','Expected overall proctoring reason',
@@ -47,51 +45,45 @@ class FaceLiveliness:
         write_excel_object.current_status_color = write_excel_object.green_color
         write_excel_object.current_status = "Pass"
         tu_id = int(current_excel_data.get('testUserId'))
-        # print(tu_id)
         tu_id = {"tuId": tu_id}
         tu_proctor_details = crpo_common_obj.get_tu_proc_screen_data(token, tu_id)
-        print(tu_proctor_details)
         proctor_detail = tu_proctor_details['data']['getProctorDetail']
         overallReasons = proctor_detail.get('overallReasons')
 
-        liveliness = proctor_detail.get('livenessDetectionDetails')
-        if liveliness:
-            liveliness_suspicious = (liveliness.get('livenessDetectionSuspicious'))
-            liveliness_count = (liveliness.get('livenessDetectionCount'))
+        face_details = proctor_detail.get('faceDetails')
 
+        if not face_details:
+            blur_virtual_suspicious = 'EMPTY'
         else:
-            liveliness_suspicious = 'EMPTY'
-            liveliness_count = 'EMPTY'
+            blur_virtual_suspicious = (
+                'Blur suspicious' if face_details.get('is_blur_suspicious') else 'Virtual suspicious')
 
         if overallReasons:
             overall_reason_text = (overallReasons.get('reasonText'))
             reason_text = proctor_detail['overallReasons']['reasonData']['reasonText']
+
         else:
             overall_reason_text = 'EMPTY'
             reason_text = 'EMPTY'
 
-
-
-        # self.suspicious_or_not_supicious(device_suspicious, False)
         write_excel_object.compare_results_and_write_vertically(
-            current_excel_data.get('expectedLiveProctoringStatus'),liveliness_suspicious, row_count, 5)
-        write_excel_object.compare_results_and_write_vertically(
-            current_excel_data.get('expectedLiveProctoringCount'),liveliness_count, row_count, 7)
+            current_excel_data.get('expectedBlurProctoringStatus'),blur_virtual_suspicious, row_count, 5)
+
         video_suspicious = proctor_detail.get('faceSuspicious')
         overall_proctoring_status = proctor_detail.get('finalDecision')
         overall_suspicious_value = proctor_detail.get('systemOverallDecision')
         self.suspicious_or_not_supicious(overall_proctoring_status, overall_suspicious_value)
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('overallProctoringStatus'),
-                                                                self.status, row_count, 9)
+                                                                self.status, row_count, 7)
         excel_overall_suspicious_value = round(current_excel_data.get('overallSuspiciousValue'), 4)
         write_excel_object.compare_results_and_write_vertically(excel_overall_suspicious_value,
-                                                                overall_suspicious_value, row_count, 11)
+                                                                overall_suspicious_value, row_count, 9)
         write_excel_object.compare_results_and_write_vertically(video_suspicious,current_excel_data.get('expectedVideoStatus'),
-                                                                 row_count, 13)
+                                                                 row_count, 11)
         write_excel_object.compare_results_and_write_vertically(reason_text,current_excel_data.get('ProctoringReason'),
-                                                                 row_count, 15)
+                                                                 row_count, 13)
         write_excel_object.compare_results_and_write_vertically(overall_reason_text,current_excel_data.get('overallProctoringReason'),
-                                                                 row_count, 17)
+                                                                 row_count, 15)
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('testCase'), None, row_count, 0)
         write_excel_object.compare_results_and_write_vertically(write_excel_object.current_status, None, row_count, 1)
         write_excel_object.compare_results_and_write_vertically(current_excel_data.get('testId'), None, row_count, 2)
@@ -103,13 +95,13 @@ class FaceLiveliness:
 login_token = crpo_common_obj.login_to_crpo(cred_crpo_admin.get('user'),
                                             cred_crpo_admin.get('password'),
                                             cred_crpo_admin.get('tenant'))
-content = json.dumps(automation_face_liveliness_proctor_eval_app_pref)
+content = json.dumps(automation_video_proctor_eval_app_pref)
 app_pref_proc_eval_id = automation_tenant_proc_eval_id
 app_pref_proc_eval_type = automation_tenant_proc_eval_type
 update_app_preference = CrpoCommon.save_apppreferences(login_token, content, app_pref_proc_eval_id,
                                                        app_pref_proc_eval_type)
 
-excel_read_obj.excel_read(input_path_proctor_evaluation, 4)
+excel_read_obj.excel_read(input_path_proctor_evaluation, 6)
 excel_data = excel_read_obj.details
 proctor_obj = FaceLiveliness()
 tuids = []
@@ -117,7 +109,6 @@ over_all_status = 'Pass'
 for fetch_tuids in excel_data:
     tuids.append(int(fetch_tuids.get('testUserId')))
 context_id = CrpoCommon.force_evaluate_proctoring(login_token, tuids)
-print(context_id)
 print(tuids)
 context_id = context_id['data']['ContextId']
 print(context_id)
