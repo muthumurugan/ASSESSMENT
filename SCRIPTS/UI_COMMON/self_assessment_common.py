@@ -241,21 +241,21 @@ class SelfAssessmentLogin:
             WebDriverWait(self.driver, 120).until(
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
             wait = WebDriverWait(self.driver, 20)
             mcq_sec = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//a[text()='MCQ Section']")))
             mcq_sec.click()
             time.sleep(1)
 
-            self_assessment_obj.select_plus('MCQ')
+            self.select_plus('MCQ')
             WebDriverWait(self.driver, 120).until(
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
             WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@class = "tab-option"]'))
             ).click()
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
             self.driver.find_element(By.XPATH, "//i[@class='fa fa-fw fa-text-width']").click()
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Question Description']"))
@@ -297,21 +297,21 @@ class SelfAssessmentLogin:
             print("Creating rtc question...")
             # creating question - rtc
             time.sleep(2)
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
             wait = WebDriverWait(self.driver, 20)
             rtc_sec = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//a[text()='Paragraph Section']")))
             rtc_sec.click()
             time.sleep(1)
 
-            self_assessment_obj.select_plus('ReferenceToContext')
+            self.select_plus('ReferenceToContext')
 
             self.driver.find_element(By.XPATH, '//*[@class = "tab-option"]').click()
 
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
 
             time.sleep(2)
-            # self_assessment_obj.select_text_toggle_button(1)
+            # self.select_text_toggle_button(1)
             self.driver.find_element(By.CSS_SELECTOR,
                                      '''label[ng-class="{'btn-primary':vm.data.paragraphAsText}"] i[class='fa fa-fw fa-text-width']''').click()
             rtc_parent_text = self.driver.find_element(By.XPATH, "//textarea[@placeholder='Paragraph']")
@@ -385,16 +385,16 @@ class SelfAssessmentLogin:
 
             # Adding a new section and selecting the subjective section
             time.sleep(2)
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
             subjective_sec = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//a[text()='Subjective Section']"))
             )
             subjective_sec.click()
             time.sleep(1)
 
-            self_assessment_obj.select_plus('QA')
+            self.select_plus('QA')
             self.driver.find_element(By.XPATH, '//*[@class="tab-option"]').click()
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
 
             # Selecting question type and writing question description
             time.sleep(2)
@@ -481,7 +481,7 @@ class SelfAssessmentLogin:
             print("Creating FIB question...")
 
             # Add a new section
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
 
             # Wait for "Fill In The Blank Section" to be clickable
             wait = WebDriverWait(self.driver, 40)
@@ -491,7 +491,7 @@ class SelfAssessmentLogin:
             fib_section.click()
 
             # Select "Fill In The Blank" question type
-            self_assessment_obj.select_plus("Fill In The Blank")
+            self.select_plus("Fill In The Blank")
 
             # Click on the tab option
             wait.until(
@@ -499,7 +499,7 @@ class SelfAssessmentLogin:
             ).click()
 
             # Select question attributes
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
             # //label[@ng-class="{'btn-primary':vm.data.questionAsText}"]//i[@class='fa fa-fw fa-text-width']
 
             WebDriverWait(self.driver, 120).until(
@@ -591,18 +591,18 @@ class SelfAssessmentLogin:
     def create_mca_q(self):
         try:
             print("Creating mca question...")
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
             wait = WebDriverWait(self.driver, 20)
             mca_sec = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//a[normalize-space()='Multiple Correct Answer Section']")))
             mca_sec.click()
             time.sleep(1)
 
-            self_assessment_obj.select_plus('Multiple Correct Answer')
+            self.select_plus('Multiple Correct Answer')
             WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@class = "tab-option"]'))
             ).click()
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
             self.driver.find_element(By.XPATH, "//i[@class='fa fa-fw fa-text-width']").click()
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Question Description']"))
@@ -633,18 +633,18 @@ class SelfAssessmentLogin:
     def create_mcqww_q(self):
         try:
             print("Creating mcq with weightage question...")
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
             wait = WebDriverWait(self.driver, 20)
             mca_sec = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//a[normalize-space()='MCQ With Weightage Section']")))
             mca_sec.click()
             time.sleep(1)
 
-            self_assessment_obj.select_plus('MCQWithWeightage')
+            self.select_plus('MCQWithWeightage')
             WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@class = "tab-option"]'))
             ).click()
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
             self.driver.find_element(By.XPATH, "//i[@class='fa fa-fw fa-text-width']").click()
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Question Description']"))
@@ -691,7 +691,7 @@ class SelfAssessmentLogin:
     def create_coding_q(self):
         try:
             print("Creating coding question...")
-            self_assessment_obj.add_new_section()
+            self.add_new_section()
             wait = WebDriverWait(self.driver, 20)
             add_sec = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//a[normalize-space()='Coding Section']"))
@@ -699,11 +699,11 @@ class SelfAssessmentLogin:
             add_sec.click()
             time.sleep(1)
 
-            self_assessment_obj.select_plus('Coding')
+            self.select_plus('Coding')
             WebDriverWait(self.driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@class = "tab-option"]'))
             ).click()
-            self_assessment_obj.select_question_attributes()
+            self.select_question_attributes()
             self.driver.find_element(By.XPATH, "//textarea[@placeholder='Problem Title']").send_keys(
                 "po coding create q sa automation don't use")
 
@@ -779,7 +779,7 @@ class SelfAssessmentLogin:
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
 
-            self_assessment_obj.select_plus(section_name)
+            self.select_plus(section_name)
 
             # Wait until the loading overlay disappears
             WebDriverWait(self.driver, 120).until(
@@ -844,7 +844,7 @@ class SelfAssessmentLogin:
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
 
-            self_assessment_obj.select_plus(section_name)
+            self.select_plus(section_name)
             WebDriverWait(self.driver, 120).until(
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
@@ -889,7 +889,7 @@ class SelfAssessmentLogin:
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
 
-            self_assessment_obj.select_plus(section_name)
+            self.select_plus(section_name)
             # Wait for any loading overlay to disappear
             WebDriverWait(self.driver, 120).until(
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
@@ -963,7 +963,7 @@ class SelfAssessmentLogin:
                 EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active"))
             )
 
-            self_assessment_obj.select_plus(section_name)
+            self.select_plus(section_name)
 
             # Wait for any loading spinners to disappear
             WebDriverWait(self.driver, 120).until(
@@ -1187,7 +1187,7 @@ class SelfAssessmentLogin:
             print("Attend test module")
 
             # Moving to Assessment applicants page
-            self_assessment_obj.view_candidates_page(test_name)
+            self.view_candidates_page(test_name)
 
             self.driver.find_element(By.XPATH, "//div[contains(text(),'View Test Link')]").click()
 
@@ -1202,15 +1202,15 @@ class SelfAssessmentLogin:
             wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active")))
 
             # Handle test agreement and starting the test
-            i_agreed = self_assessment_obj.select_i_agree()
+            i_agreed = self.select_i_agree()
             if i_agreed:
-                start_test_status = self_assessment_obj.start_test()
+                start_test_status = self.start_test()
                 wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active")))
 
                 # Answer the questions and end the test
-                self_assessment_obj.select_answer_generic()
-                self_assessment_obj.end_test()
-                end_test_status = self_assessment_obj.end_test_confirmation()
+                self.select_answer_generic()
+                self.end_test()
+                end_test_status = self.end_test_confirmation()
 
                 time.sleep(5)
 
@@ -1225,49 +1225,49 @@ class SelfAssessmentLogin:
             time.sleep(2)
 
             # RTC
-            self_assessment_obj.select_answer_for_the_question('A')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('B')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('C')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('D')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('')
-            self_assessment_obj.next_question()
+            self.select_answer_for_the_question('A')
+            self.next_question()
+            self.select_answer_for_the_question('B')
+            self.next_question()
+            self.select_answer_for_the_question('C')
+            self.next_question()
+            self.select_answer_for_the_question('D')
+            self.next_question()
+            self.select_answer_for_the_question('')
+            self.next_question()
+            self.select_answer_for_the_question('')
+            self.next_question()
             # MCQ
-            self_assessment_obj.select_answer_for_the_question('B')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('C')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('')
-            self_assessment_obj.next_question()
+            self.select_answer_for_the_question('B')
+            self.next_question()
+            self.select_answer_for_the_question('C')
+            self.next_question()
+            self.select_answer_for_the_question('')
+            self.next_question()
             # FIB
-            self_assessment_obj.select_answer_for_fib_question('')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_fib_question('Answer@2')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_fib_question('-4634.26')
-            self_assessment_obj.next_question()
+            self.select_answer_for_fib_question('')
+            self.next_question()
+            self.select_answer_for_fib_question('Answer@2')
+            self.next_question()
+            self.select_answer_for_fib_question('-4634.26')
+            self.next_question()
             # MCA
-            self_assessment_obj.select_answer_for_mca_question('1,2')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_mca_question('')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_mca_question('0,2')
-            self_assessment_obj.next_question()
+            self.select_answer_for_mca_question('1,2')
+            self.next_question()
+            self.select_answer_for_mca_question('')
+            self.next_question()
+            self.select_answer_for_mca_question('0,2')
+            self.next_question()
             # MCQWW
-            self_assessment_obj.select_answer_for_the_question('B')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('C')
-            self_assessment_obj.next_question()
-            self_assessment_obj.select_answer_for_the_question('D')
-            self_assessment_obj.next_question()
+            self.select_answer_for_the_question('B')
+            self.next_question()
+            self.select_answer_for_the_question('C')
+            self.next_question()
+            self.select_answer_for_the_question('D')
+            self.next_question()
             # coding
 
-            self_assessment_obj.send_answer_for_coding_question(''' 
+            self.send_answer_for_coding_question(''' 
         #include <stdio.h>
         int main() {    
 
@@ -1285,8 +1285,8 @@ class SelfAssessmentLogin:
             time.sleep(1)
             self.driver.find_element(By.XPATH, "//button[normalize-space()='Run Tests']").click()
             time.sleep(5)
-            self_assessment_obj.next_question()
-            self_assessment_obj.send_answer_for_coding_question(''' 
+            self.next_question()
+            self.send_answer_for_coding_question(''' 
         import java.util.Scanner;
 
         public class TestClass {
@@ -1309,8 +1309,8 @@ class SelfAssessmentLogin:
             self.driver.find_element(By.XPATH, "//button[normalize-space()='Submit & Continue Coding']").click()
             time.sleep(5)
 
-            self_assessment_obj.next_question()
-            self_assessment_obj.send_answer_for_coding_question(''' 
+            self.next_question()
+            self.send_answer_for_coding_question(''' 
              # Python program to check if the number is an Armstrong number or not
 
         # take input from the user
@@ -1336,16 +1336,16 @@ class SelfAssessmentLogin:
 
              ''')
             time.sleep(1)
-            self_assessment_obj.next_question()
+            self.next_question()
 
             # subjective
-            self_assessment_obj.send_answer_for_qa_question(
+            self.send_answer_for_qa_question(
                 "I am very foodie. I love to eat. Among the number of foods, Pizza is my favourite food because it tastes and smells fabulous. My Mom cooks the best Pizzas in the world. I always ask her to make Pizza. In Pizzas, I love onion cheese Pizza a lot. This is because cheese pizza is healthy and makes me strong. To create fun we also organize pizza races in terms of who can eat the maximum number of pizzas. I can eat many pizzas at a time.")
-            self_assessment_obj.next_question()
-            self_assessment_obj.send_answer_for_qa_question(
+            self.next_question()
+            self.send_answer_for_qa_question(
                 "I am very foodie. I love to eat. Among the number of foods, Pizza is my favourite food because it tastes and smells fabulous. My Mom cooks the best Pizzas in the world. I always ask her to make Pizza. In Pizzas, I love onion cheese Pizza a lot. This is because cheese pizza is healthy and makes me strong. To create fun we also organize pizza races in terms of who can eat the maximum number of pizzas. I can eat many pizzas at a time.")
-            self_assessment_obj.next_question()
-            self_assessment_obj.send_answer_for_qa_question('')
+            self.next_question()
+            self.send_answer_for_qa_question('')
 
         except Exception as e:
             print(f"Error while answering questions : {e}")
@@ -1447,14 +1447,14 @@ class SelfAssessmentLogin:
                 # print("Answer sent successfully.")
 
                 # Capture image for subjective question (if implemented)
-                self_assessment_obj.capture_img_subjective()
+                self.capture_img_subjective()
                 WebDriverWait(self.driver, 60).until(
                     EC.invisibility_of_element_located((By.CLASS_NAME, "block-ui-overlay"))
                 )
                 # print("Captured image.")
 
                 # Upload file (if needed)
-                self_assessment_obj.upload_file()
+                self.upload_file()
                 WebDriverWait(self.driver, 60).until(
                     EC.invisibility_of_element_located((By.CLASS_NAME, "block-ui-overlay"))
                 )
@@ -1581,7 +1581,7 @@ class SelfAssessmentLogin:
             self.driver.switch_to.window(self.driver.window_handles[0])
 
             # Wait for loading to disappear and ensure the "Assessments" link is clickable
-            self_assessment_obj.view_candidates_page(test_name)
+            self.view_candidates_page(test_name)
 
             self.driver.find_element(By.XPATH, "//div[contains(text(),'Evaluate Manually')]").click()
 
@@ -1599,7 +1599,7 @@ class SelfAssessmentLogin:
                 # self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
                 # Click on the element
                 element.click()
-                self_assessment_obj.save_score_manual(1)
+                self.save_score_manual(1)
 
             wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active")))
             status_element = self.driver.find_element(By.XPATH,
@@ -1684,20 +1684,25 @@ class SelfAssessmentLogin:
             print("fetching score")
 
             # Wait for loading to disappear and ensure the "Assessments" link is clickable
-            self_assessment_obj.view_candidates_page(test_name)
+            self.view_candidates_page(test_name)
 
             wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "dw-loading-active")))
 
             elements = wait.until(EC.presence_of_all_elements_located(
                 (By.XPATH, "//span[@title and not(@title='') and number(@title)]")
             ))
-            score = elements[2].text
-            percentage = elements[3].text
+            if len(elements) >= 4:
+                score = elements[2].text
+                percentage = elements[3].text
+            else:
+                print(f"Warning: Expected at least 4 score elements, found {len(elements)}")
+                score = elements[-2].text if len(elements) >= 2 else "0"
+                percentage = elements[-1].text if len(elements) >= 1 else "0"
             # for index, element in enumerate(elements, start=1):
             #     print(element.text)
 
-            print(score)
-            print(percentage)
+            print(f"Final Score: {score}")
+            print(f"Final Percentage: {percentage}")
 
         except Exception as e:
             print(f"Error in fetching score and percentage : {e}")

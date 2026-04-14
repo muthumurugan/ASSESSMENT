@@ -100,3 +100,27 @@ automation_video_proctor_eval_app_pref = {"video":{"gazeDetection":{"isEnabled":
         "intervalCount":[ {"weightage":0.32,"count":1,"interval":60},{"weightage":0.31,"count":2,"interval":30} ]},
     "isEnabled":True,"multiple_timespan":10,"zeroIntervalCount":{"isEnabled":True,
         "intervalCount":[ {"weightage":0.34,"count":1,"interval":60},{"weightage":0.33,"count":2,"interval":30} ]}}}
+
+automation_reading_detection_proctor_eval_app_pref = {"video":{"readingGauge":{"isEnabled":True,
+    "statusList":[ {"from":71,"to":100,"weightage":0.831},{"from":31,"to":70,"weightage":0.531} ]},"weightage":0.3,
+    "zero_count":3,"multiple_count":1,"zero_timespan":60,"multipleIntervalCount":{"isEnabled":True,
+        "intervalCount":[ {"weightage":0.32,"count":1,"interval":60},{"weightage":0.31,"count":2,"interval":30} ]},
+    "isEnabled":True,"multiple_timespan":10,"zeroIntervalCount":{"isEnabled":True,
+        "intervalCount":[ {"weightage":0.34,"count":1,"interval":60},{"weightage":0.33,"count":2,"interval":30} ]}}}
+
+automation_gesture_detection_proctor_eval_app_pref = {"video": {"gestureDetectionConf": {"isEnabled": True,
+    "confThresholdList": [
+        {"suspiciousPercentage": 100, "count": 2, "level": "Highly Suspicious", "weightage": 0.771},
+        {"suspiciousPercentage": 50, "count": 2, "level": "Medium Suspicious", "weightage": 0.571}
+    ]},
+    "weightage": 0.3, "zero_count": 3, "multiple_count": 1, "zero_timespan": 60,
+    "multipleIntervalCount": {"isEnabled": True, "intervalCount": [
+        {"weightage": 0.32, "count": 1, "interval": 60},
+        {"weightage": 0.31, "count": 2, "interval": 30}
+    ]},
+    "isEnabled": True, "multiple_timespan": 10,
+    "zeroIntervalCount": {"isEnabled": True, "intervalCount": [
+        {"weightage": 0.34, "count": 1, "interval": 60},
+        {"weightage": 0.33, "count": 2, "interval": 30}
+    ]}
+}}
